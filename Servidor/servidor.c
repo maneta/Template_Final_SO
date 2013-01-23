@@ -29,14 +29,30 @@
 
 typedef struct {
 
-       int conexion;
-       char nombre [20];
+      int conexion;
+      char nombre [20];
  } Tusuario;
 
  typedef struct {
-       int num;
-       Tusuario usuarios [MAX];
+      
+      int num;
+      Tusuario usuarios [MAX];
  } Tlista;
+
+typedef struct {
+      
+      char name[20]; //nombre del usuario
+      char mensaje1[20]; //mensaje pendiente 1
+      char mensaje2[20]; //mensaje pendiente 2
+      char mensaje3[20]; //mensaje pendiente 3
+      char mensaje4[20]; //mensaje pendiente 4
+} Tuser;
+
+typedef struct {
+      
+      Tuser user[4]; //hay 4
+      int num;
+ } TListaUsers;
 
 /*.........Fin de las estructuras........*/
 
@@ -56,7 +72,7 @@ pthread_mutex_t semaforo;
 
 /*Contador Global threads*/
 int T; 
-
+int C;
 void crea_base_datos()
 {
        int err;
@@ -630,24 +646,39 @@ void *usuarios(void *conector)
 
        switch(code){
 	      case 1:
+                     if (T == 4){
+
+                        sprintf (mensaje_a_cliente,"99 ");  
+                        write(con,mensaje_a_cliente,strlen(mensaje_a_cliente));
+                        sprintf (mensaje_a_cliente,"100 %s ",usuario);
+                     
+                        write(con,mensaje_a_cliente,strlen(mensaje_a_cliente));
+                        //close(con);
+                        //pthread_exit(NULL);
+                     }
+                     else
+                     {
+                     T++;
                      // Agregamos nuevo usuario a nuestra base de datos
 	             printf("Estas en el caso 1 introducir usuario \n");
-	             resultado=new_user(buf);
-	             if(resultado==0){
-                            pthread_mutex_lock(&semaforo);
+	             
+                     //resultado=new_user(buf);
+	             //if(resultado==0){
+                       //     pthread_mutex_lock(&semaforo);
 	                    /*tabla_partida(buf);*/
 	                    sprintf (mensaje_a_cliente,"1 ");
                             write(con,mensaje_a_cliente,strlen(mensaje_a_cliente));
-                            pthread_mutex_unlock(&semaforo); 
-                     }else{
+                         //   pthread_mutex_unlock(&semaforo); 
+                     //}else{
 			    //sprintf (mensaje2,"Usuario no se ha introducido correctamente");
 	                    
                             /*con no existe en el contesto actual como variable, el argumento no se ha guardado
                              *en una variable local*/
-                            sprintf (mensaje_a_cliente,"2 ");
+                       //     sprintf (mensaje_a_cliente,"2 ");
 
-                            write(con,mensaje_a_cliente,strlen(mensaje_a_cliente));
-	             }
+                         //   write(con,mensaje_a_cliente,strlen(mensaje_a_cliente));
+	             //}
+                     }
 		     break;
 	      case 2:
 
@@ -756,24 +787,29 @@ void *usuarios(void *conector)
        
        sprintf (mensaje_a_cliente,"100 %s ",usuario);
        write(con,mensaje_a_cliente,strlen(mensaje_a_cliente));
-       int u = buscar(usuario,mi_lista);
-       eliminar(u,&mi_lista);
+      // int u = buscar(usuario,mi_lista);
+       //eliminar(u,&mi_lista);
+       
+       T--;
+       C--;
        close(con);
        pthread_exit(NULL);
-       T--;
+      
   }
 
 int main(void) {
 
        // Defino las variables que se utilizara en el programa principal
-       int s;
+       int s,C;
        int con;
        int remote_addr_len;
        struct sockaddr_in serv_adr, remote_addr;
        int thread_p;
        char mensaje_a_cliente[50];
        
-       T = 0;
+      T = 0;
+      C = 0;
+       
        pthread_t Pthread[MAX_THREADS];
        inicializa_lista (&mi_lista);
 
@@ -792,7 +828,7 @@ int main(void) {
        for(;;){
 
               /*El while es el responsable por el control de numero maximo de threads*/
-              while (T <= MAX_THREADS){
+              while (C <= MAX_THREADS){
                      printf("dentro del bucle \n");
                      printf ("Esperando connexion\n");
                      remote_addr_len=sizeof(remote_addr);
@@ -804,17 +840,18 @@ int main(void) {
                      sprintf (mensaje_a_cliente,"0 ");  
                      write(con,mensaje_a_cliente,strlen(mensaje_a_cliente));
 
-                     /* Iniciamos el thread respetando siempre el numero maximo de Threads permitido*/
-                     thread_p=pthread_create(&Pthread[T],NULL,usuarios,(void *) con);
-                     if(thread_p){
-                           printf("Ha habido un problema con el thread \n");
-                           exit(-1);
-                     }
+                      /* Iniciamos el thread respetando siempre el numero maximo de Threads permitido*/
+                      thread_p=pthread_create(&Pthread[T],NULL,usuarios,(void *) con);
+                      if(thread_p){
+                        printf("Ha habido un problema con el thread \n");
+                        exit(-1);
+                      }
                      /*Incrementamos el numero de Threads usado*/
-                     T++;
                      
+              C++;       
               /*fin del WHILE*/       
-              }
+            }
+            
        /*fin del FOR*/
        } 
        pthread_exit(NULL);
