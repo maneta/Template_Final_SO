@@ -80,7 +80,7 @@ namespace WindowsFormsApplication1
                     switch (op)
                     {
                         case 0: // mensaje confirmación de conexión establecida
-                            MessageBox.Show("CONEXION CORRECTA CON EL SERVIDOR");
+                            MessageBox.Show("Conexión Establecida Con el servidor");
 
                             //pongo en marcha el thread que activa el formulario de login
                             /*ThreadStart ts2 = delegate { activar_formulario_login(); };
@@ -88,7 +88,7 @@ namespace WindowsFormsApplication1
                             t2.Start();*/
                             break;
                         case 1: // mensaje confirmación de autentificación que el usuario se ha añadido correctamente
-                            MessageBox.Show("Usuario dado de alta correctamente");
+                            MessageBox.Show("OK! Usuario Registrado");
                             this.us = trozos[1];
                             // pongo en marcha el thread que activa el formulario de usuarios conectados y consultas
                             // ThreadStart ts4 = delegate { activar_formulario_consultas(this.us); };
@@ -120,12 +120,17 @@ namespace WindowsFormsApplication1
                             string consulta_ganadores = Encoding.ASCII.GetString(msg2);
                             MessageBox.Show(consulta_ganadores);
                             break;
-                        
+
+                        case 99:
+
+                            MessageBox.Show("No pueden registrarse más usuarios en la aplicación");
+                            
+                            break;
+
                         case 100:
 
                             continuar = false;
                             break;
-
                     }
                 }
                 catch (SocketException e)
@@ -147,7 +152,7 @@ namespace WindowsFormsApplication1
         // Debemos introducir el mismo user y contraseña que al registrarte
         private void button1_Click(object sender, EventArgs e)
         {
-            String usuarioContraseña = "1 " + usuario.Text + " " + contraseña.Text;
+            String usuarioContraseña = "1 " + usuario.Text; //+ " " + contraseña.Text;
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(usuarioContraseña);
             server.Send(msg);
             
@@ -180,6 +185,19 @@ namespace WindowsFormsApplication1
         private void usuario_TextChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            String logoff = "100 " + this.Text;
+            byte[] msg = System.Text.Encoding.ASCII.GetBytes(logoff);
+            server.Send(msg);
+            this.Close();
         }
     }
 }
